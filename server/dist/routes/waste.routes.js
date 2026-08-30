@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const waste_controller_js_1 = require("../controllers/waste.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/listings', waste_controller_js_1.WasteController.getWasteListings);
+router.post('/listings', auth_middleware_js_1.authenticateToken, waste_controller_js_1.WasteController.createWasteListing);
+router.get('/my-listings', auth_middleware_js_1.authenticateToken, waste_controller_js_1.WasteController.getMyWasteListings);
+router.post('/offers', auth_middleware_js_1.authenticateToken, waste_controller_js_1.WasteController.createOffer);
+exports.default = router;

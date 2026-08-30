@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const support_controller_js_1 = require("../controllers/support.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/helplines', support_controller_js_1.SupportController.getHelplineInfo);
+router.get('/my-tickets', auth_middleware_js_1.authenticateToken, support_controller_js_1.SupportController.getMyTickets);
+router.post('/tickets', auth_middleware_js_1.authenticateToken, support_controller_js_1.SupportController.createTicket);
+router.post('/tickets/:ticketId/reply', auth_middleware_js_1.authenticateToken, support_controller_js_1.SupportController.replyTicket);
+exports.default = router;

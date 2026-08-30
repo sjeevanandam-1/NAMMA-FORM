@@ -1,0 +1,1525 @@
+// ========================================================
+// NAMMA FARM - COMPREHENSIVE PRODUCTION PRISMA SCHEMA
+// ========================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------
+// USER & ROLE MODELS
+// --------------------------------------------------------
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  phone            String             @unique
+  name             String
+  passwordHash     String
+  role             String             // "FARMER" | "BUYER" | "EXPERT" | "GOVERNMENT_OFFICIAL" | "ADMIN"
+  isVerified       Boolean            @default(false)
+  avatarUrl        String?
+  refreshToken     String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  farmerProfile    FarmerProfile?
+  buyerProfile     BuyerProfile?
+  govProfile       GovernmentProfile?
+  expertProfile    ExpertProfile?
+  trustScore       TrustScore?
+  farmerPassport   FarmerPassport?
+  notifPref        NotificationPreference?
+  
+  // Relations
+  listings         CropListing[]      @relation("FarmerListings")
+  farmerOrders     Order[]            @relation("FarmerOrders")
+  buyerOrders      Order[]            @relation("BuyerOrders")
+  notifications    Notification[]
+  sentMessages     Message[]          @relation("SentMessages")
+  farmerConvs      Conversation[]     @relation("FarmerConversations")
+  buyerConvs       Conversation[]     @relation("BuyerConversations")
+  reviewsGiven     Review[]           @relation("ReviewsGiven")
+  reviewsReceived  Review[]           @relation("ReviewsReceived")
+  diseaseScans     DiseaseScan[]
+  aiRecs           AIRecommendation[]
+  profitPreds      ProfitPrediction[]
+  farmerQueries    FarmerQuery[]      @relation("FarmerSubmittedQueries")
+  queryMessages    QueryMessage[]     @relation("QueryMessageSender")
+  aiConversations  AIConversation[]
+  favorites        Favorite[]
+  auditLogs        AuditLog[]
+
+  // New Feature Relations
+  schemeApps       SchemeApplication[]
+  savedSchemes     SavedScheme[]
+  procBookings     ProcurementBooking[]
+  storageBookings  StorageBooking[]
+  supportTickets   SupportTicket[]
+  ticketMessages   TicketMessage[]
+  cropCalendars    CropCalendar[]
+  equipBookings    EquipmentBooking[]
+  transportBookings TransportBooking[]
+  loanApps         LoanApplication[]
+  insurancePolicies InsurancePolicy[]
+  insuranceClaims  InsuranceClaim[]
+  communityPosts   CommunityPost[]
+  communityComments CommunityComment[]
+  communityLikes   CommunityLike[]
+  communityReports CommunityReport[]
+  wasteListings    AgriWasteListing[]
+  wasteOffers      WasteOffer[]
+  wasteOrders      WasteOrder[]
+  farmerConsults   ExpertConsultation[] @relation("FarmerConsultations")
+  expertConsults   ExpertConsultation[] @relation("ExpertConsultations")
+  expertReviews    ExpertReview[]     @relation("ExpertReviewsGiven")
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+}
+
+model FarmerProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  state            String
+  district         String
+  village          String
+  farmLocation     String
+  landAreaAcre     Float
+  soilType         String   // Alluvial, Red, Black, Sandy, Clay, Loamy
+  irrigationType   String   // Drip, Sprinkler, Canal, Borewell, Rainfed
+  mainCrops        String   // JSON stringified or comma-separated list of crops
+  kycStatus        String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  idProofUrl       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  farms            Farm[]
+
+  @@index([state, district])
+}
+
+model BuyerProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName      String
+  businessType     String   // WHOLESALER, RETAILER, EXPORTER, PROCESSOR, AGGREGATOR
+  gstNumber        String?
+  state            String
+  district         String
+  location         String
+  requiredCrops    String   // JSON array or comma separated
+  kycStatus        String   @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([state, district])
+  @@index([businessType])
+}
+
+model GovernmentProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  officialId       String   @unique
+  department       String
+  designation      String
+  state            String
+  district         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([officialId])
+  @@index([state])
+}
+
+// --------------------------------------------------------
+// FARM & CROP MANAGEMENT
+// --------------------------------------------------------
+
+model Farm {
+  id               String        @id @default(uuid())
+  farmerProfileId  String
+  farmerProfile    FarmerProfile @relation(fields: [farmerProfileId], references: [id], onDelete: Cascade)
+  farmName         String
+  location         String
+  latitude         Float?
+  longitude        Float?
+  landAreaAcre     Float
+  soilType         String
+  irrigation       String
+  crops            String        // JSON array or comma separated
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  listings         CropListing[]
+
+  @@index([farmerProfileId])
+}
+
+model Crop {
+  id                  String   @id @default(uuid())
+  name                String   @unique
+  category            String   // VEGETABLES, FRUITS, GRAINS, PULSES, SPICES, CASH_CROPS
+  variety             String?
+  description         String
+  season              String   // KHARIF, RABI, ZAID, YEAR_ROUND
+  idealSoil           String
+  gestationPeriodDays Int
+  imageUrl            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  listings            CropListing[]
+  marketPrices        MarketPrice[]
+  predictions         MarketPrediction[]
+
+  @@index([category])
+}
+
+// --------------------------------------------------------
+// LISTINGS & MARKETPLACE
+// --------------------------------------------------------
+
+model CropListing {
+  id                   String      @id @default(uuid())
+  farmerId             String
+  farmer               User        @relation("FarmerListings", fields: [farmerId], references: [id], onDelete: Cascade)
+  farmId               String?
+  farm                 Farm?       @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  cropId               String
+  crop                 Crop        @relation(fields: [cropId], references: [id])
+  variety              String
+  quantityKg           Float
+  availableQuantityKg  Float
+  unit                 String      @default("KG") // KG, QUINTAL, TON
+  expectedPricePerKg   Float
+  minAcceptablePrice   Float
+  harvestDate          DateTime
+  qualityGrade         String      // GRADE_A, GRADE_B, GRADE_C
+  description          String
+  location             String
+  district             String
+  state                String
+  status               String      @default("ACTIVE") // DRAFT, ACTIVE, RESERVED, SOLD, EXPIRED, CANCELLED
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  images               CropImage[]
+  orders               Order[]
+  orderItems           OrderItem[]
+  conversations        Conversation[]
+  favorites            Favorite[]
+
+  @@index([farmerId])
+  @@index([cropId])
+  @@index([status])
+  @@index([state, district])
+  @@index([qualityGrade])
+  @@index([expectedPricePerKg])
+}
+
+model CropImage {
+  id        String      @id @default(uuid())
+  listingId String
+  listing   CropListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  filename  String
+  isPrimary Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  @@index([listingId])
+}
+
+// --------------------------------------------------------
+// ORDERS & TRANSACTIONS
+// --------------------------------------------------------
+
+model Order {
+  id               String      @id @default(uuid())
+  orderNumber      String      @unique
+  buyerId          String
+  buyer            User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  farmerId         String
+  farmer           User        @relation("FarmerOrders", fields: [farmerId], references: [id])
+  listingId        String
+  listing          CropListing @relation(fields: [listingId], references: [id])
+  quantityKg       Float
+  pricePerKg       Float
+  totalAmount      Float
+  transportCost    Float       @default(0)
+  taxAmount        Float       @default(0)
+  grandTotal       Float
+  status           String      @default("PENDING") // PENDING, ACCEPTED, REJECTED, CONFIRMED, PACKED, READY_FOR_PICKUP, PICKED_UP, IN_TRANSIT, DELIVERED, COMPLETED, CANCELLED
+  deliveryAddress  String
+  deliveryDate     DateTime?
+  notes            String?
+  rejectionReason  String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  items            OrderItem[]
+  payment          Payment?
+  delivery         Delivery?
+  reviews          Review[]
+
+  @@index([buyerId])
+  @@index([farmerId])
+  @@index([listingId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id          String      @id @default(uuid())
+  orderId     String
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId   String
+  listing     CropListing @relation(fields: [listingId], references: [id])
+  quantityKg  Float
+  unitPrice   Float
+  subtotal    Float
+  createdAt   DateTime    @default(now())
+
+  @@index([orderId])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  transactionId String        @unique
+  amount        Float
+  currency      String        @default("INR")
+  paymentMethod String        // UPI, CARD, NET_BANKING, CASH_ON_DELIVERY, ESCROW
+  status        String        @default("PENDING") // PENDING, AUTHORIZED, PAID, FAILED, REFUNDED
+  provider      String        @default("MOCK_DEV")
+  providerRef   String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transactions  Transaction[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([transactionId])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  type        String   // PAYMENT, REFUND, PAYOUT, COMMISSION
+  amount      Float
+  fee         Float    @default(0)
+  netAmount   Float
+  status      String   @default("SUCCESS") // SUCCESS, PENDING, FAILED
+  referenceId String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([paymentId])
+}
+
+model Delivery {
+  id                    String    @id @default(uuid())
+  orderId               String    @unique
+  order                 Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vehicleType           String    // MINI_TRUCK, TRUCK_3TON, REFRIGERATED_VAN, TRACTOR
+  driverName            String?
+  driverPhone           String?
+  vehicleNumber         String?
+  trackingNumber        String    @unique
+  estimatedCost         Float
+  pickupLocation        String
+  deliveryLocation      String
+  pickupTime            DateTime?
+  estimatedDeliveryTime DateTime?
+  actualDeliveryTime    DateTime?
+  status                String    @default("REQUESTED") // REQUESTED, ASSIGNED, PICKED_UP, IN_TRANSIT, DELIVERED
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+// --------------------------------------------------------
+// MARKET DATA & AI PREDICTION
+// --------------------------------------------------------
+
+model MarketPrice {
+  id          String   @id @default(uuid())
+  cropId      String?
+  crop        Crop?    @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  cropName    String
+  marketName  String   // Mandi name (e.g. Azadpur, Koyambedu, Vashi)
+  district    String
+  state       String
+  modalPrice  Float    // Avg price per kg
+  minPrice    Float
+  maxPrice    Float
+  unit        String   @default("KG")
+  recordDate  DateTime
+  source      String   // AGMARKNET, STATE_APMC, DEMO_SIMULATOR
+  sourceUrl   String?
+  isDemoData  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([cropName])
+  @@index([state, district])
+  @@index([recordDate])
+}
+
+model MarketPriceSource {
+  id           String    @id @default(uuid())
+  name         String
+  url          String
+  state        String
+  lastSyncedAt DateTime?
+  status       String    @default("ACTIVE")
+  createdAt    DateTime  @default(now())
+}
+
+model MarketPrediction {
+  id                 String   @id @default(uuid())
+  cropId             String
+  crop               Crop     @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  currentPrice       Float
+  predictedPrice7d   Float
+  predictedPrice14d  Float
+  predictedPrice30d  Float
+  trend              String   // RISING, FALLING, STABLE
+  confidenceScore    Float    // 0 to 100
+  advisoryNote       String
+  calculatedAt       DateTime @default(now())
+
+  @@index([cropId])
+}
+
+// --------------------------------------------------------
+// AI CROP DOCTOR & RECOMMENDATIONS
+// --------------------------------------------------------
+
+model DiseaseScan {
+  id                 String                  @id @default(uuid())
+  farmerId           String
+  farmer             User                    @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropName           String
+  imageUrl           String
+  diseaseName        String
+  confidenceScore    Float                   // Percentage e.g. 91.5
+  severity           String                  // LOW, MEDIUM, HIGH
+  observedSymptoms   String
+  possibleCauses     String
+  status             String                  @default("ACTIVE") // ACTIVE, RESOLVED, RECURRING
+  followUpStatus     String?                 // IMPROVING, STABLE, POSSIBLY_WORSENING, UNCERTAIN
+  parentScanId       String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  recommendation     DiseaseRecommendation?
+
+  @@index([farmerId])
+  @@index([cropName])
+}
+
+model DiseaseRecommendation {
+  id                     String      @id @default(uuid())
+  scanId                 String      @unique
+  scan                   DiseaseScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  diseaseName            String
+  organicTreatment       String
+  chemicalTreatment      String
+  safetyGuideline        String
+  expertConsultationNote String
+  sourceName             String      // e.g. ICAR / TNAU Agricultural University
+  verificationDate       DateTime
+
+  @@index([scanId])
+}
+
+model AIRecommendation {
+  id          String   @id @default(uuid())
+  farmerId    String
+  farmer      User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  category    String   // SELLING_STRATEGY, CROP_SELECTION, MARKET_TIMING, WEATHER_RISK
+  title       String
+  summary     String
+  actionItems String   // JSON array string
+  confidence  Float    @default(88.0)
+  isDismissed Boolean  @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([farmerId])
+  @@index([category])
+}
+
+model ProfitPrediction {
+  id               String   @id @default(uuid())
+  farmerId         String
+  farmer           User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropName         String
+  landAreaAcre     Float
+  expectedYieldKg  Float
+  productionCost   Float
+  transportCost    Float
+  sellingPricePerKg Float
+  estimatedRevenue Float
+  estimatedProfit  Float
+  profitMarginPct  Float
+  comparisonData   String   // JSON string comparing buyers and markets
+  createdAt        DateTime @default(now())
+
+  @@index([farmerId])
+}
+
+model WeatherData {
+  id              String   @id @default(uuid())
+  district        String
+  state           String
+  temperature     Float
+  humidity        Float
+  rainfallMm      Float
+  rainProbability Float
+  windSpeedKmh    Float
+  condition       String   // Sunny, Rainy, Cloudy, Stormy
+  forecastDays    String   // JSON string of 7-day forecast
+  agroAdvisory    String
+  isDemoData      Boolean  @default(false)
+  updatedAt       DateTime @default(now())
+
+  @@index([state, district])
+}
+
+// --------------------------------------------------------
+// SOCIAL, CHAT, REVIEWS & TRUST
+// --------------------------------------------------------
+
+model Conversation {
+  id        String      @id @default(uuid())
+  farmerId  String
+  farmer    User        @relation("FarmerConversations", fields: [farmerId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User        @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  listingId String?
+  listing   CropListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  messages  Message[]
+
+  @@unique([farmerId, buyerId, listingId])
+  @@index([farmerId])
+  @@index([buyerId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  revieweeId  String
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  rating      Int      // 1 to 5
+  comment     String
+  role        String   // BUYER_TO_FARMER | FARMER_TO_BUYER
+  createdAt   DateTime @default(now())
+
+  @@unique([orderId, reviewerId])
+  @@index([revieweeId])
+}
+
+model TrustScore {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score                  Float    @default(80.0) // Out of 100
+  verifiedIdentityScore  Float    @default(25.0) // Max 25
+  completedOrdersScore   Float    @default(30.0) // Max 35
+  ratingScore            Float    @default(25.0) // Max 30
+  disputePenaltyScore    Float    @default(0.0)  // Deductions
+  explanation            String
+  calculatedAt           DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   // ORDER_CREATED, PRICE_ALERT, WEATHER_ALERT, SCHEME_ALERT, CALENDAR_TASK, STORAGE_UPDATE, TRANSPORT_UPDATE, LOAN_UPDATE, INSURANCE_ALERT, EXPERT_APPOINTMENT, COMMUNITY_ACTIVITY
+  isRead    Boolean  @default(false)
+  metadata  String?  // JSON string
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model NotificationPreference {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priceAlerts      Boolean  @default(true)
+  weatherAlerts    Boolean  @default(true)
+  schemeAlerts     Boolean  @default(true)
+  calendarTasks    Boolean  @default(true)
+  buyerOffers      Boolean  @default(true)
+  communityUpdates Boolean  @default(true)
+  smsEnabled       Boolean  @default(false)
+  emailEnabled     Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+}
+
+model Favorite {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   CropListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@unique([userId, listingId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String   // REGISTER, LOGIN, LISTING_CREATE, ORDER_CREATE, STATUS_CHANGE, PAYMENT, ADMIN_ACTION, MARKET_IMPORT
+  entityType String   // USER, LISTING, ORDER, PAYMENT, MARKET_PRICE, CROP, SCHEME, EQUIPMENT, TRANSPORT, LOAN, INSURANCE
+  entityId   String?
+  details    String   // JSON string
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// --------------------------------------------------------
+// PHONE OTP VERIFICATION
+// --------------------------------------------------------
+
+model OTPVerification {
+  id         String   @id @default(uuid())
+  phone      String
+  otpHash    String
+  attempts   Int      @default(0)
+  isVerified Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+}
+
+// --------------------------------------------------------
+// FARMER QUERY & EXTENSION SUPPORT SYSTEM
+// --------------------------------------------------------
+
+model FarmerQuery {
+  id          String            @id @default(uuid())
+  farmerId    String
+  farmer      User              @relation("FarmerSubmittedQueries", fields: [farmerId], references: [id], onDelete: Cascade)
+  category    String            // PEST_DISEASE, SCHEME_SUBSIDY, SOIL_NUTRIENT, CROP_ADVICE, GENERAL
+  crop        String?
+  title       String
+  description String
+  location    String
+  status      String            @default("OPEN") // OPEN, IN_PROGRESS, ANSWERED, CLOSED
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  messages    QueryMessage[]
+  attachments QueryAttachment[]
+
+  @@index([farmerId])
+  @@index([status])
+}
+
+model QueryMessage {
+  id        String      @id @default(uuid())
+  queryId   String
+  query     FarmerQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User        @relation("QueryMessageSender", fields: [senderId], references: [id])
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([queryId])
+  @@index([senderId])
+}
+
+model QueryAttachment {
+  id        String      @id @default(uuid())
+  queryId   String
+  query     FarmerQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  fileType  String      // IMAGE, DOCUMENT
+  createdAt DateTime    @default(now())
+
+  @@index([queryId])
+}
+
+// --------------------------------------------------------
+// AI ASSISTANT CONVERSATION & CHAT MEMORY
+// --------------------------------------------------------
+
+model AIConversation {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String      @default("Agricultural Advisory")
+  language  String      @default("en") // "en" | "ta"
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  messages  AIMessage[]
+
+  @@index([userId])
+}
+
+model AIMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String         // "user" | "assistant"
+  content        String
+  audioInput     Boolean        @default(false)
+  imageUrl       String?
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId])
+}
+
+// ========================================================
+// 1. GOVERNMENT SCHEMES HUB
+// ========================================================
+
+model GovernmentScheme {
+  id                 String              @id @default(uuid())
+  title              String
+  titleTamil         String?
+  code               String              @unique // e.g. PM-KISAN, PMFBY, SMAM, SHC
+  category           String              // FINANCIAL_SUPPORT, CROP_INSURANCE, IRRIGATION, FARM_MACHINERY, SOIL_FERTILIZER, ORGANIC_FARMING, HORTICULTURE
+  level              String              @default("CENTRAL") // CENTRAL, STATE
+  state              String?             // Null for Central, or state name
+  subsidyPct         Float?              // e.g. 50.0%
+  maxAmount          Float?              // e.g. 6000 or 50000
+  description        String
+  descriptionTamil   String?
+  benefits           String              // Detailed bullet points
+  eligibilityCriteria String             // JSON string or criteria text
+  requiredDocuments  String              // JSON string array of docs
+  applicationProcess String              // Step-by-step instructions
+  officialPortalUrl  String?
+  deadline           DateTime?
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  applications       SchemeApplication[]
+  savedBy            SavedScheme[]
+
+  @@index([category])
+  @@index([level, state])
+  @@index([isActive])
+}
+
+model SchemeApplication {
+  id                 String           @id @default(uuid())
+  schemeId           String
+  scheme             GovernmentScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  farmerId           String
+  farmer             User             @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  applicationNumber  String           @unique
+  applicantName      String
+  applicantPhone     String
+  landAreaAcre       Float
+  aadhaarLast4       String
+  bankAccountNumber  String
+  ifscCode           String
+  village            String
+  district           String
+  state              String
+  documentsSubmitted String           // JSON array of uploaded document URLs
+  status             String           @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, VERIFIED, APPROVED, REJECTED, DISBURSED
+  officialRemarks    String?
+  disbursedAmount    Float?
+  disbursedAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([farmerId])
+  @@index([schemeId])
+  @@index([status])
+}
+
+model SavedScheme {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schemeId  String
+  scheme    GovernmentScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([userId, schemeId])
+  @@index([userId])
+}
+
+// ========================================================
+// 2. GOVERNMENT ASSURED PRICE / MSP & PROCUREMENT
+// ========================================================
+
+model MSPPrice {
+  id                 String   @id @default(uuid())
+  cropName           String
+  variety            String?
+  season             String   // KHARIF, RABI, COMMERCIAL
+  year               String   // "2025-26", "2026-27"
+  mspPerQuintal      Float    // In INR per quintal (100 kg)
+  mspPerKg           Float    // Computed (mspPerQuintal / 100)
+  prevYearMsp        Float?   // Historical comparison
+  costOfProduction   Float?   // A2+FL cost
+  marginOverCostPct  Float?   // e.g. 50%
+  procurementAgency  String   // FCI, NAFED, CCI, STATE_CIVIL_SUPPLIES
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([cropName, year, season])
+  @@index([season])
+}
+
+model ProcurementCenter {
+  id              String   @id @default(uuid())
+  centerName      String
+  agency          String   // FCI, NAFED, TNCSC, HAFED
+  district        String
+  state           String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  contactPerson   String
+  contactPhone    String
+  operatingHours  String   // e.g. "9:00 AM - 5:00 PM"
+  acceptedCrops   String   // JSON string array e.g. ["Paddy (Common)", "Cotton", "Maize"]
+  isOpen          Boolean  @default(true)
+  dailyQuotaMT    Float    @default(50.0)
+  currentBookedMT Float    @default(0.0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings        ProcurementBooking[]
+
+  @@index([state, district])
+  @@index([isOpen])
+}
+
+model ProcurementBooking {
+  id                 String            @id @default(uuid())
+  farmerId           String
+  farmer             User              @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  centerId           String
+  center             ProcurementCenter @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  receiptNumber      String            @unique
+  cropName           String
+  quantityQuintals   Float
+  mspRatePerQuintal  Float
+  totalMspPayout     Float
+  slotDate           DateTime
+  status             String            @default("SCHEDULED") // SCHEDULED, DELIVERED, INSPECTED, PAID, CANCELLED
+  qualityGrade       String?           // FAQ (Fair Average Quality), Non-FAQ
+  moisturePercentage Float?
+  paymentRefNumber   String?
+  paidAt             DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([farmerId])
+  @@index([centerId])
+  @@index([status])
+}
+
+// ========================================================
+// 6. GOVERNMENT STORAGE FINDER
+// ========================================================
+
+model StorageCenter {
+  id              String   @id @default(uuid())
+  name            String
+  agency          String   // CWC (Central Warehousing Corp), SWC (State Warehousing Corp), PRIVATE_COLD_STORAGE, RURAL_GODOWN
+  type            String   // DRY_GRAIN_GODOWN, COLD_STORAGE, CONTROLLED_ATMOSPHERE, SILO
+  district        String
+  state           String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  contactPerson   String
+  contactPhone    String
+  totalCapacityMT Float
+  availableMT     Float
+  ratePerBagMonth Float    // Rate in INR per 50kg bag per month
+  ratePerTonMonth Float    // Rate in INR per metric ton per month
+  facilities      String   // JSON string array: ["Pest Control", "Temperature Monitoring", "Security 24x7", "Weighbridge", "WDRA Certified", "Negotiable Warehouse Receipt"]
+  isWDRARegistered Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings        StorageBooking[]
+
+  @@index([state, district])
+  @@index([type])
+}
+
+model StorageBooking {
+  id                String        @id @default(uuid())
+  farmerId          String
+  farmer            User          @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  storageId         String
+  storage           StorageCenter @relation(fields: [storageId], references: [id], onDelete: Cascade)
+  bookingRef        String        @unique
+  cropName          String
+  quantityBags      Int
+  quantityMT        Float
+  startDate         DateTime
+  endDate           DateTime
+  estimatedCharges  Float
+  status            String        @default("PENDING") // PENDING, CONFIRMED, STORED, RELEASED, CANCELLED
+  receiptNumber     String?       // NWR / Godown Receipt
+  remarks           String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([farmerId])
+  @@index([storageId])
+  @@index([status])
+}
+
+// ========================================================
+// 7. TOLL-FREE & ASSISTANCE SUPPORT TICKETS
+// ========================================================
+
+model SupportTicket {
+  id             String          @id @default(uuid())
+  ticketNumber   String          @unique
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category       String          // SCHEME_SUPPORT, MSP_PROCUREMENT, MARKETPLACE_DISPUTE, CROP_DOCTOR_HELP, PAYMENT_ISSUE, GENERAL_ADVISORY
+  priority       String          @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  subject        String
+  description    String
+  status         String          @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  assignedTo     String?         // Agricultural extension agent or admin
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  messages       TicketMessage[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id             String        @id @default(uuid())
+  ticketId       String
+  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User          @relation(fields: [senderId], references: [id])
+  senderType     String        // "USER" | "SUPPORT_AGENT" | "AI_ASSISTANT"
+  message        String
+  attachmentUrl  String?
+  createdAt      DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+// ========================================================
+// 9. SMART IRRIGATION ADVISORY
+// ========================================================
+
+model IrrigationAdvisory {
+  id                  String   @id @default(uuid())
+  farmerId            String
+  cropName            String
+  soilType            String
+  growthStage         String   // Sowing, Vegetative, Flowering, Yield Formation, Maturity
+  landAreaAcre        Float
+  waterSource         String   // Borewell, Canal, Rainfed, Drip, Sprinkler
+  dailyWaterReqLiters Float
+  nextIrrigationDate  DateTime
+  hoursRequired       Float
+  recommendationText  String
+  waterSavingTips     String   // JSON string
+  rainForecastMm      Float    @default(0)
+  createdAt           DateTime @default(now())
+
+  @@index([farmerId])
+  @@index([cropName])
+}
+
+// ========================================================
+// 11. AI CROP CALENDAR
+// ========================================================
+
+model CropCalendar {
+  id              String         @id @default(uuid())
+  farmerId        String
+  farmer          User           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropName        String
+  variety         String?
+  sowingDate      DateTime
+  expectedHarvest DateTime
+  landAreaAcre    Float
+  fieldLocation   String
+  status          String         @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  tasks           CalendarTask[]
+
+  @@index([farmerId])
+}
+
+model CalendarTask {
+  id               String       @id @default(uuid())
+  calendarId       String
+  calendar         CropCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  stageName        String       // Germination, Vegetative, Budding, Flowering, Fruit/Grain Filling, Maturity
+  taskType         String       // IRRIGATION, FERTILIZER, PEST_CONTROL, WEEDING, HARVESTING, SOIL_TEST
+  title            String
+  titleTamil       String?
+  description      String
+  descriptionTamil String?
+  dueDate          DateTime
+  isCompleted      Boolean      @default(false)
+  completedAt      DateTime?
+  dosageOrGuidance String?
+  createdAt        DateTime     @default(now())
+
+  @@index([calendarId])
+  @@index([dueDate])
+  @@index([isCompleted])
+}
+
+// ========================================================
+// 12. FARM EQUIPMENT RENTAL
+// ========================================================
+
+model Equipment {
+  id                 String             @id @default(uuid())
+  ownerName          String
+  ownerPhone         String
+  name               String             // e.g. "Mahindra 575 DI Tractor (45 HP)", "Kubota Combine Harvester DC-68G"
+  category           String             // TRACTOR, HARVESTER, POWER_TILLER, SPRAYER_DRONE, ROTAVATOR, SEED_DRILL, THRESHER, LASER_LEVELER
+  hourlyRate         Float?             // ₹/hour
+  dailyRate          Float?             // ₹/day
+  acreRate           Float?             // ₹/acre
+  location           String
+  district           String
+  state              String
+  specifications     String             // Horsepower, fuel type, attachments included
+  imageUrl           String
+  isAvailable        Boolean            @default(true)
+  rating             Float              @default(4.8)
+  totalBookingsCount Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  bookings           EquipmentBooking[]
+
+  @@index([category])
+  @@index([state, district])
+  @@index([isAvailable])
+}
+
+model EquipmentBooking {
+  id              String    @id @default(uuid())
+  bookingNumber   String    @unique
+  equipmentId     String
+  equipment       Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  farmerId        String
+  farmer          User      @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  rentalType      String    // HOURLY, DAILY, PER_ACRE
+  unitsBooked     Float     // e.g. 5 hours or 3 acres
+  startDate       DateTime
+  endDate         DateTime
+  totalAmount     Float
+  farmAddress     String
+  status          String    @default("BOOKED") // BOOKED, IN_PROGRESS, COMPLETED, CANCELLED
+  operatorIncluded Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([farmerId])
+  @@index([equipmentId])
+  @@index([status])
+}
+
+// ========================================================
+// 14. SMART TRANSPORT
+// ========================================================
+
+model TransportVehicle {
+  id             String             @id @default(uuid())
+  driverName     String
+  driverPhone    String
+  vehicleType    String             // MINI_TRUCK_TATA_ACE, TRUCK_3TON, TRUCK_10TON_LORRY, TRACTOR_TROLLEY, REFRIGERATED_CONTAINER
+  vehicleNumber  String             @unique
+  capacityTons   Float
+  basePrice      Float              // Base loading fare
+  perKmRate      Float              // ₹/km
+  district       String
+  state          String
+  currentLocation String
+  isAvailable    Boolean            @default(true)
+  rating         Float              @default(4.9)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  bookings       TransportBooking[]
+
+  @@index([state, district])
+  @@index([vehicleType])
+  @@index([isAvailable])
+}
+
+model TransportBooking {
+  id                 String           @id @default(uuid())
+  bookingNumber      String           @unique
+  vehicleId          String
+  vehicle            TransportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  farmerId           String
+  farmer             User             @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  pickupLocation     String
+  dropLocation       String
+  distanceKm         Float
+  cargoDescription   String           // e.g. "3000 kg Fresh Harvest Tomatoes"
+  weightTons         Float
+  pickupDate         DateTime
+  estimatedCost      Float
+  status             String           @default("REQUESTED") // REQUESTED, ASSIGNED, IN_TRANSIT, COMPLETED, CANCELLED
+  liveLocationLat    Float?
+  liveLocationLng    Float?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([farmerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+// ========================================================
+// 15. FINANCE & LOAN ASSISTANCE
+// ========================================================
+
+model AgriLoanProduct {
+  id                 String            @id @default(uuid())
+  bankName           String            // SBI, Canara Bank, NABARD, Indian Bank, HDFC Agri
+  loanName           String            // Kisan Credit Card (KCC), Agri Term Loan, Tractor & Mechanization Loan, Gold Loan for Farming
+  code               String            @unique
+  interestRatePct    Float             // e.g. 7.0%
+  subventedRatePct   Float?            // e.g. 4.0% with prompt repayment
+  maxAmount          Float             // e.g. 300000 (3 Lakhs)
+  tenureMonthsMax    Int               // e.g. 60
+  processingFee      String            // e.g. "Nil up to ₹1.6 Lakhs"
+  eligibility        String            // Farmers, sharecroppers, tenant farmers
+  requiredDocuments  String            // JSON string array
+  features           String            // JSON string array
+  officialApplyUrl   String?
+  isActive           Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+
+  applications       LoanApplication[]
+
+  @@index([bankName])
+  @@index([isActive])
+}
+
+model LoanApplication {
+  id                 String          @id @default(uuid())
+  applicationNumber  String          @unique
+  loanProductId      String
+  loanProduct        AgriLoanProduct @relation(fields: [loanProductId], references: [id], onDelete: Cascade)
+  farmerId           String
+  farmer             User            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  requestedAmount    Float
+  tenureMonths       Int
+  purpose            String          // CROP_PRODUCTION, MACHINERY_PURCHASE, LAND_DEVELOPMENT, IRRIGATION_SETUP
+  annualIncome       Float
+  landAreaAcre       Float
+  pattaNumber        String?
+  aadhaarLast4       String
+  bankAccount        String
+  ifscCode           String
+  status             String          @default("SUBMITTED") // SUBMITTED, DOCUMENT_VERIFICATION, BANK_REVIEW, APPROVED, DISBURSED, REJECTED
+  approvedAmount     Float?
+  bankOfficerRemarks String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([farmerId])
+  @@index([loanProductId])
+  @@index([status])
+}
+
+// ========================================================
+// 16. CROP INSURANCE ASSISTANCE
+// ========================================================
+
+model InsuranceProduct {
+  id                 String            @id @default(uuid())
+  schemeName         String            // Pradhan Mantri Fasal Bima Yojana (PMFBY), Restructured WBCIS
+  providerName       String            // AIC of India, HDFC ERGO Agri, ICICI Lombard, State Insurance Pool
+  season             String            // KHARIF, RABI, ANNUAL_COMMERCIAL
+  premiumRatePct     Float             // 2.0% Kharif, 1.5% Rabi, 5.0% Commercial
+  coveredCrops       String            // JSON string array
+  coveredRisks       String            // JSON string array: ["Prevented Sowing", "Mid-Season Adversity", "Post-Harvest Losses", "Localized Calamities (Hailstorm, Landslide, Inundation)"]
+  claimSettlementAvg Float             @default(94.5) // Settlement percentage
+  cutOffDate         DateTime
+  isActive           Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+
+  policies           InsurancePolicy[]
+
+  @@index([season])
+  @@index([isActive])
+}
+
+model InsurancePolicy {
+  id                 String           @id @default(uuid())
+  policyNumber       String           @unique
+  productId          String
+  product            InsuranceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  farmerId           String
+  farmer             User             @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropName           String
+  season             String
+  year               String           // "2026"
+  landAreaAcre       Float
+  sumInsured         Float            // Total insured coverage amount in INR
+  farmerPremiumPaid  Float            // Farmer's share (1.5% - 2%)
+  govtSubsidyAmount  Float            // Central + State share
+  village            String
+  district           String
+  state              String
+  surveyNumber       String
+  status             String           @default("ACTIVE") // ACTIVE, EXPIRED, CLAIM_IN_PROGRESS, SETTLED
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  claims             InsuranceClaim[]
+
+  @@index([farmerId])
+  @@index([productId])
+  @@index([status])
+}
+
+model InsuranceClaim {
+  id                 String          @id @default(uuid())
+  claimNumber        String          @unique
+  policyId           String
+  policy             InsurancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  farmerId           String
+  farmer             User            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  lossCause          String          // HAILSTORM, UNSEASONAL_RAINFALL, FLOOD_INUNDATION, DROUGHT, PEST_EPIDEMIC, CYCLONE
+  lossDate           DateTime
+  estimatedLossPct   Float           // e.g. 70.0%
+  claimedAmount      Float
+  damagePhotoUrl     String?
+  lossDescription    String
+  surveyorName       String?
+  surveyDate         DateTime?
+  status             String          @default("FILED") // FILED, SURVEY_ASSIGNED, ASSESSMENT_COMPLETED, APPROVED, SETTLED, REJECTED
+  approvedAmount     Float?
+  settledAt          DateTime?
+  remarks            String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([farmerId])
+  @@index([policyId])
+  @@index([status])
+}
+
+// ========================================================
+// 17. DIGITAL FARMER PASSPORT
+// ========================================================
+
+model FarmerPassport {
+  id                 String   @id @default(uuid())
+  farmerId           String   @unique
+  farmer             User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  passportNumber     String   @unique // e.g. "NF-PASS-2026-8839"
+  qrCodeUrl          String?
+  soilHealthIndex    Float    @default(8.4) // Out of 10
+  soilNPKStatus      String   @default("N: Medium | P: High | K: Optimal | pH: 6.8")
+  totalCultivatedAcre Float   @default(0)
+  primaryWaterSource String   @default("Borewell + Micro-Drip")
+  creditRatingGrade  String   @default("A+") // Creditworthiness score
+  totalLifetimeSales Float    @default(0)
+  totalTransactions  Int      @default(0)
+  activeSchemesCount Int      @default(0)
+  activeLoansCount   Int      @default(0)
+  insuranceCoverage  Float    @default(0)
+  kycVerifiedDate    DateTime?
+  updatedAt          DateTime @updatedAt
+  createdAt          DateTime @default(now())
+
+  @@index([farmerId])
+}
+
+// ========================================================
+// 18. COMMUNITY CONNECT
+// ========================================================
+
+model CommunityPost {
+  id                 String             @id @default(uuid())
+  authorId           String
+  author             User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category           String             // FARMING_TIPS, PEST_ALERT, MACHINERY_SHARING, MARKET_DISCUSSION, SUCCESS_STORY, QUESTION
+  title              String
+  content            String
+  imageUrl           String?
+  likesCount         Int                @default(0)
+  commentsCount      Int                @default(0)
+  isPinned           Boolean            @default(false)
+  isReported         Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  comments           CommunityComment[]
+  likes              CommunityLike[]
+  reports            CommunityReport[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model CommunityComment {
+  id        String        @id @default(uuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime      @default(now())
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+model CommunityLike {
+  id        String        @id @default(uuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model CommunityReport {
+  id        String        @id @default(uuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason    String        // SPAM, HARMFUL_ADVICE, INAPPROPRIATE, MISINFORMATION
+  status    String        @default("PENDING") // PENDING, REVIEWED, DISMISSED, REMOVED
+  createdAt DateTime      @default(now())
+
+  @@index([postId])
+  @@index([userId])
+}
+
+// ========================================================
+// 20. AGRICULTURAL WASTE & BIOMASS MARKET
+// ========================================================
+
+model AgriWasteListing {
+  id                 String       @id @default(uuid())
+  farmerId           String
+  farmer             User         @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  wasteType          String       // PADDY_STRAW, SUGARCANE_BAGASSE, COIR_PITH, COTTON_STALKS, CORN_COBS, POULTRY_MANURE, CROP_RESIDUE
+  title              String
+  description        String
+  quantityTons       Float
+  availableTons      Float
+  pricePerTon        Float        // In INR (0 = Free for soil mulching pickup)
+  suitableFor        String       // BIO_FUEL, MUSHROOM_CULTIVATION, COMPOSTING, CATTLE_FEED, PAPER_PULP, MULCHING
+  location           String
+  district           String
+  state              String
+  imageUrl           String?
+  status             String       @default("ACTIVE") // ACTIVE, RESERVED, SOLD, EXPIRED
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  offers             WasteOffer[]
+  orders             WasteOrder[]
+
+  @@index([farmerId])
+  @@index([wasteType])
+  @@index([status])
+}
+
+model WasteOffer {
+  id                 String           @id @default(uuid())
+  listingId          String
+  listing            AgriWasteListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId            String
+  buyer              User             @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  offeredPricePerTon Float
+  requestedTons      Float
+  totalAmount        Float
+  message            String?
+  status             String           @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  createdAt          DateTime         @default(now())
+
+  @@index([listingId])
+  @@index([buyerId])
+}
+
+model WasteOrder {
+  id                 String           @id @default(uuid())
+  orderNumber        String           @unique
+  listingId          String
+  listing            AgriWasteListing @relation(fields: [listingId], references: [id])
+  buyerId            String
+  buyer              User             @relation(fields: [buyerId], references: [id])
+  quantityTons       Float
+  pricePerTon        Float
+  totalAmount        Float
+  pickupDate         DateTime?
+  deliveryAddress    String
+  status             String           @default("CONFIRMED") // CONFIRMED, PICKED_UP, COMPLETED, CANCELLED
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([buyerId])
+  @@index([listingId])
+}
+
+// ========================================================
+// 22. DIRECT EXPERT ACCESS & CONSULTATIONS
+// ========================================================
+
+model ExpertProfile {
+  id                 String               @id @default(uuid())
+  userId             String               @unique
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title              String               // e.g. "Senior Agronomist", "Plant Pathology Specialist"
+  institution        String               // TNAU Coimbatore, ICAR, KVK, State Horticulture Dept
+  specialization     String               // ENTOMOLOGY, PLANT_PATHOLOGY, SOIL_SCIENCE, HORTICULTURE, ORGANIC_FARMING, AGRONOMY
+  experienceYears    Int                  @default(8)
+  languagesSpoken    String               // "Tamil, English, Hindi"
+  qualifications     String               // "Ph.D. Plant Pathology (TNAU)"
+  bio                String
+  consultationFee    Float                @default(0) // ₹0 = Free Extension Advisory
+  isVerified         Boolean              @default(true)
+  isAvailableNow     Boolean              @default(true)
+  rating             Float                @default(4.9)
+  consultationsCount Int                  @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  availabilities     ExpertAvailability[]
+  consultations      ExpertConsultation[]
+  reviews            ExpertReview[]
+
+  @@index([specialization])
+  @@index([isVerified])
+}
+
+model ExpertAvailability {
+  id          String        @id @default(uuid())
+  expertId    String
+  expert      ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  dayOfWeek   String        // MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+  startTime   String        // "09:00"
+  endTime     String        // "17:00"
+  isAvailable Boolean       @default(true)
+
+  @@index([expertId])
+}
+
+model ExpertConsultation {
+  id                 String         @id @default(uuid())
+  consultationNumber String         @unique
+  farmerId           String
+  farmer             User           @relation("FarmerConsultations", fields: [farmerId], references: [id], onDelete: Cascade)
+  expertId           String
+  expertUser         User           @relation("ExpertConsultations", fields: [expertId], references: [id], onDelete: Cascade)
+  expertProfileId    String
+  expertProfile      ExpertProfile  @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  topic              String         // PEST_DISEASE_DIAGNOSIS, SOIL_FERTILITY, CROP_PLANNING, SCHEME_ADVICE
+  cropName           String?
+  problemSummary     String
+  cropImageUrl       String?
+  scheduledDate      DateTime
+  scheduledSlot      String         // e.g. "10:00 AM - 10:30 AM"
+  status             String         @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
+  prescriptionAdvice String?        // Written prescription / treatment notes by scientist
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([farmerId])
+  @@index([expertId])
+  @@index([expertProfileId])
+  @@index([status])
+}
+
+model ExpertReview {
+  id              String        @id @default(uuid())
+  expertProfileId String
+  expertProfile   ExpertProfile @relation(fields: [expertProfileId], references: [id], onDelete: Cascade)
+  farmerId        String
+  farmer          User          @relation("ExpertReviewsGiven", fields: [farmerId], references: [id], onDelete: Cascade)
+  rating          Int           // 1 to 5
+  feedback        String
+  createdAt       DateTime      @default(now())
+
+  @@index([expertProfileId])
+  @@index([farmerId])
+}

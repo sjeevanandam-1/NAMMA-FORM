@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const transport_controller_js_1 = require("../controllers/transport.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/vehicles', transport_controller_js_1.TransportController.getVehicles);
+router.post('/estimate', transport_controller_js_1.TransportController.estimateFreight);
+router.get('/my-bookings', auth_middleware_js_1.authenticateToken, transport_controller_js_1.TransportController.getMyTransportBookings);
+router.post('/book', auth_middleware_js_1.authenticateToken, transport_controller_js_1.TransportController.bookTransport);
+exports.default = router;

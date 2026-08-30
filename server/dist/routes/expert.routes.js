@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const expert_controller_js_1 = require("../controllers/expert.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/', expert_controller_js_1.ExpertController.getExperts);
+router.get('/my-consultations', auth_middleware_js_1.authenticateToken, expert_controller_js_1.ExpertController.getMyConsultations);
+router.post('/book', auth_middleware_js_1.authenticateToken, expert_controller_js_1.ExpertController.bookConsultation);
+router.post('/review', auth_middleware_js_1.authenticateToken, expert_controller_js_1.ExpertController.reviewExpert);
+exports.default = router;

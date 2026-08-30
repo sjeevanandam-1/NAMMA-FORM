@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const finance_controller_js_1 = require("../controllers/finance.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/products', finance_controller_js_1.FinanceController.getLoanProducts);
+router.post('/calculate-emi', finance_controller_js_1.FinanceController.calculateEMI);
+router.get('/my-applications', auth_middleware_js_1.authenticateToken, finance_controller_js_1.FinanceController.getMyApplications);
+router.post('/apply', auth_middleware_js_1.authenticateToken, finance_controller_js_1.FinanceController.applyLoan);
+exports.default = router;

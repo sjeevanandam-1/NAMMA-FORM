@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const farm_controller_js_1 = require("../controllers/farm.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.use((0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.FARMER, roles_js_1.ROLES.ADMIN]));
+router.get('/my-farms', farm_controller_js_1.FarmController.getMyFarms);
+router.post('/', farm_controller_js_1.FarmController.createFarm);
+router.patch('/:id', farm_controller_js_1.FarmController.updateFarm);
+router.delete('/:id', farm_controller_js_1.FarmController.deleteFarm);
+exports.default = router;

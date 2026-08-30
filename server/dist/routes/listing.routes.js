@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const listing_controller_js_1 = require("../controllers/listing.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.get('/my-listings', (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.FARMER, roles_js_1.ROLES.ADMIN]), listing_controller_js_1.ListingController.getMyListings);
+router.post('/', (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.FARMER, roles_js_1.ROLES.ADMIN]), listing_controller_js_1.ListingController.createListing);
+router.patch('/:id', (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.FARMER, roles_js_1.ROLES.ADMIN]), listing_controller_js_1.ListingController.updateListing);
+router.delete('/:id', (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.FARMER, roles_js_1.ROLES.ADMIN]), listing_controller_js_1.ListingController.deleteListing);
+exports.default = router;

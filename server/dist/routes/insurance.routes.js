@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const insurance_controller_js_1 = require("../controllers/insurance.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/products', insurance_controller_js_1.InsuranceController.getInsuranceProducts);
+router.post('/calculate-premium', insurance_controller_js_1.InsuranceController.calculatePremium);
+router.get('/my-policies', auth_middleware_js_1.authenticateToken, insurance_controller_js_1.InsuranceController.getMyPolicies);
+router.post('/enroll', auth_middleware_js_1.authenticateToken, insurance_controller_js_1.InsuranceController.enrollPolicy);
+router.post('/claims', auth_middleware_js_1.authenticateToken, insurance_controller_js_1.InsuranceController.fileClaim);
+exports.default = router;

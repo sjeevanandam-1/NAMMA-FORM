@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const logistics_controller_js_1 = require("../controllers/logistics.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.post('/request', logistics_controller_js_1.LogisticsController.requestTransport);
+router.get('/track/:trackingNumber', logistics_controller_js_1.LogisticsController.getDeliveryStatus);
+exports.default = router;

@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const market_controller_js_1 = require("../controllers/market.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.get('/prices', market_controller_js_1.MarketController.getPrices);
+router.get('/history', market_controller_js_1.MarketController.getPriceHistory);
+router.post('/import', auth_middleware_js_1.authenticateToken, (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.ADMIN]), market_controller_js_1.MarketController.importDataset);
+exports.default = router;

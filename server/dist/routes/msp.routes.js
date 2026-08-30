@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const msp_controller_js_1 = require("../controllers/msp.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/prices', msp_controller_js_1.MSPController.getMSPPrices);
+router.get('/centers', msp_controller_js_1.MSPController.getProcurementCenters);
+router.get('/comparison', msp_controller_js_1.MSPController.getMarketVsMSPComparison);
+router.get('/my-bookings', auth_middleware_js_1.authenticateToken, msp_controller_js_1.MSPController.getMyProcurementHistory);
+router.post('/book-slot', auth_middleware_js_1.authenticateToken, msp_controller_js_1.MSPController.bookProcurementSlot);
+exports.default = router;

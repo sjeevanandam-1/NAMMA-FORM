@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const query_controller_js_1 = require("../controllers/query.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.post('/', (0, auth_middleware_js_1.requireRole)(['FARMER']), query_controller_js_1.QueryController.createQuery);
+router.get('/my-queries', (0, auth_middleware_js_1.requireRole)(['FARMER']), query_controller_js_1.QueryController.getMyQueries);
+router.get('/', (0, auth_middleware_js_1.requireRole)(['GOVERNMENT_OFFICIAL', 'ADMIN']), query_controller_js_1.QueryController.getAllQueries);
+router.get('/:id', query_controller_js_1.QueryController.getQueryById);
+router.post('/:id/reply', query_controller_js_1.QueryController.replyToQuery);
+router.patch('/:id/status', (0, auth_middleware_js_1.requireRole)(['GOVERNMENT_OFFICIAL', 'ADMIN', 'FARMER']), query_controller_js_1.QueryController.updateStatus);
+exports.default = router;

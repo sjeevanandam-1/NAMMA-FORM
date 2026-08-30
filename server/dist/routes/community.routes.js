@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const community_controller_js_1 = require("../controllers/community.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/posts', community_controller_js_1.CommunityController.getPosts);
+router.post('/posts', auth_middleware_js_1.authenticateToken, community_controller_js_1.CommunityController.createPost);
+router.post('/posts/:postId/comments', auth_middleware_js_1.authenticateToken, community_controller_js_1.CommunityController.addComment);
+router.post('/posts/:postId/like', auth_middleware_js_1.authenticateToken, community_controller_js_1.CommunityController.toggleLike);
+router.post('/posts/:postId/report', auth_middleware_js_1.authenticateToken, community_controller_js_1.CommunityController.reportPost);
+exports.default = router;

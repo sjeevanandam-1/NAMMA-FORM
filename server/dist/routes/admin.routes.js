@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const admin_controller_js_1 = require("../controllers/admin.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.use((0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.ADMIN]));
+router.get('/users', admin_controller_js_1.AdminController.getAllUsers);
+router.patch('/users/:id/verify', admin_controller_js_1.AdminController.verifyUser);
+router.get('/stats', admin_controller_js_1.AdminController.getPlatformStats);
+router.get('/audit-logs', admin_controller_js_1.AdminController.getAuditLogs);
+exports.default = router;

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const scheme_controller_js_1 = require("../controllers/scheme.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/', scheme_controller_js_1.SchemeController.getSchemes);
+router.get('/my-applications', auth_middleware_js_1.authenticateToken, scheme_controller_js_1.SchemeController.getMyApplications);
+router.get('/:id', scheme_controller_js_1.SchemeController.getSchemeById);
+router.post('/check-eligibility', auth_middleware_js_1.authenticateToken, scheme_controller_js_1.SchemeController.checkEligibility);
+router.post('/apply', auth_middleware_js_1.authenticateToken, scheme_controller_js_1.SchemeController.submitApplication);
+router.post('/toggle-save', auth_middleware_js_1.authenticateToken, scheme_controller_js_1.SchemeController.toggleSaveScheme);
+exports.default = router;

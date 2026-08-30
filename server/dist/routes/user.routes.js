@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_controller_js_1 = require("../controllers/user.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const multer_js_1 = require("../config/multer.js");
+const router = (0, express_1.Router)();
+router.get('/public/:id', user_controller_js_1.UserController.getPublicProfile);
+router.patch('/profile', auth_middleware_js_1.authenticateToken, multer_js_1.upload.single('avatar'), user_controller_js_1.UserController.updateProfile);
+exports.default = router;

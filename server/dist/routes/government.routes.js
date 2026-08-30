@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const government_controller_js_1 = require("../controllers/government.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_js_1.authenticateToken);
+router.use((0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.GOVERNMENT_OFFICIAL, roles_js_1.ROLES.ADMIN]));
+router.get('/analytics', government_controller_js_1.GovernmentController.getAnalytics);
+exports.default = router;

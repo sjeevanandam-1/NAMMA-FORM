@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const crop_controller_js_1 = require("../controllers/crop.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const roles_js_1 = require("../constants/roles.js");
+const router = (0, express_1.Router)();
+router.get('/', crop_controller_js_1.CropController.getAllCrops);
+router.get('/:id', crop_controller_js_1.CropController.getCropById);
+router.post('/', auth_middleware_js_1.authenticateToken, (0, auth_middleware_js_1.requireRole)([roles_js_1.ROLES.ADMIN]), crop_controller_js_1.CropController.createCrop);
+exports.default = router;

@@ -1,0 +1,16 @@
+export const ROLES = {
+  FARMER: 'FARMER',
+  BUYER: 'BUYER',
+  GOVERNMENT_OFFICIAL: 'GOVERNMENT_OFFICIAL',
+  ADMIN: 'ADMIN',
+} as const;
+
+export type UserRole = (typeof ROLES)[keyof typeof ROLES];
+
+export const BUYER_TYPES = {
+  WHOLESALER: 'WHOLESALER',
+  RETAILER: 'RETAILER',
+  EXPORTER: 'EXPORTER',
+  PROCESSOR: 'PROCESSOR',
+  AGGREGATOR: 'AGGREGATOR',
+} as const;

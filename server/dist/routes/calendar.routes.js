@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const calendar_controller_js_1 = require("../controllers/calendar.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const router = (0, express_1.Router)();
+router.get('/my-calendars', auth_middleware_js_1.authenticateToken, calendar_controller_js_1.CalendarController.getMyCalendars);
+router.post('/create', auth_middleware_js_1.authenticateToken, calendar_controller_js_1.CalendarController.createCropCalendar);
+router.patch('/tasks/:taskId/toggle', auth_middleware_js_1.authenticateToken, calendar_controller_js_1.CalendarController.toggleTaskStatus);
+exports.default = router;

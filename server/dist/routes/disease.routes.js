@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const disease_controller_js_1 = require("../controllers/disease.controller.js");
+const auth_middleware_js_1 = require("../middlewares/auth.middleware.js");
+const multer_js_1 = require("../config/multer.js");
+const router = (0, express_1.Router)();
+router.post('/validate-image', auth_middleware_js_1.authenticateToken, multer_js_1.upload.single('image'), disease_controller_js_1.DiseaseController.validateImage);
+router.post('/scan', auth_middleware_js_1.authenticateToken, multer_js_1.upload.single('image'), disease_controller_js_1.DiseaseController.scanImage);
+router.post('/follow-up', auth_middleware_js_1.authenticateToken, multer_js_1.upload.single('image'), disease_controller_js_1.DiseaseController.followUpScan);
+router.get('/history', auth_middleware_js_1.authenticateToken, disease_controller_js_1.DiseaseController.getHistory);
+router.delete('/history/:id', auth_middleware_js_1.authenticateToken, disease_controller_js_1.DiseaseController.deleteScan);
+exports.default = router;
