@@ -18,6 +18,7 @@ import { RegisterBuyer } from './pages/auth/RegisterBuyer.js';
 // Core Pages
 import { BuyerMarketplace } from './pages/buyer/BuyerMarketplace.js';
 import { ListingDetail } from './pages/buyer/ListingDetail.js';
+import { BuyerDashboard } from './pages/buyer/BuyerDashboard.js';
 import { BuyerOrders } from './pages/buyer/BuyerOrders.js';
 import { FarmerDashboard } from './pages/farmer/FarmerDashboard.js';
 import { FarmManagement } from './pages/farmer/FarmManagement.js';
@@ -77,7 +78,7 @@ const ProtectedRoute: React.FC<{
 
   if (!allowedRoles.includes(user.role)) {
     if (user.role === 'FARMER') return <Navigate to="/farmer/dashboard" replace />;
-    if (user.role === 'BUYER') return <Navigate to="/marketplace" replace />;
+    if (user.role === 'BUYER') return <Navigate to="/buyer/dashboard" replace />;
     if (user.role === 'GOVERNMENT_OFFICIAL') return <Navigate to="/government/dashboard" replace />;
     if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
     return <Navigate to="/" replace />;
@@ -327,9 +328,17 @@ const AppRoutes: React.FC = () => {
 
           {/* Buyer Protected Routes */}
           <Route
+            path="/buyer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
+                <BuyerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/buyer/orders"
             element={
-              <ProtectedRoute allowedRoles={['BUYER']}>
+              <ProtectedRoute allowedRoles={['BUYER', 'ADMIN']}>
                 <BuyerOrders />
               </ProtectedRoute>
             }

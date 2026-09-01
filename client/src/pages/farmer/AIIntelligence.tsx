@@ -32,7 +32,7 @@ import {
 
 export const AIIntelligence: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    'forecast' | 'bestMarket' | 'profit' | 'strategy' | 'matchmaker' | 'cropRec'
+    'forecast' | 'bestMarket' | 'profit' | 'strategy' | 'matchmaker' | 'cropRec' | 'futureScope'
   >('forecast');
 
   // 1. Price Forecast State
@@ -198,6 +198,7 @@ export const AIIntelligence: React.FC = () => {
               { id: 'strategy', label: '4. Selling Strategy', icon: Calendar },
               { id: 'matchmaker', label: '5. AI Buyer Matchmaker', icon: Users },
               { id: 'cropRec', label: '6. What to Grow (Crop Rec)', icon: Sprout },
+              { id: 'futureScope', label: '7. Future Scope & IoT (SIH 2026)', icon: Layers },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -811,6 +812,166 @@ export const AIIntelligence: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* -------------------------------------------------- */}
+        {/* TAB 7: FUTURE SCOPE & IOT (SIH 2026 INNOVATION ROADMAP) */}
+        {/* -------------------------------------------------- */}
+        {activeTab === 'futureScope' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-8 animate-in fade-in">
+            <div className="border-b border-slate-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-purple-200">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                  Smart India Hackathon 2026 • Future Scope Architecture
+                </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+                  Precision Agritech & IoT Sensor Roadmap
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl">
+                  Next-generation smart agriculture modules under active research and telemetry integration.
+                  These features are architectural extensions designed for hardware sensors, satellite APIs, and aerial drone fleets.
+                </p>
+              </div>
+              <span className="px-3.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl whitespace-nowrap self-start sm:self-auto">
+                🚧 Future Scope / Coming Soon
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 1. Drone-Based Crop Monitoring */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-3xl p-6 border border-slate-200 hover:border-purple-400 transition-all space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg">
+                    🚁
+                  </div>
+                  <span className="px-3 py-1 bg-purple-100/80 text-purple-800 rounded-full text-[11px] font-bold">
+                    Hardware / Fleet API
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900">Drone-Based Crop Monitoring</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Automated aerial drone surveys providing centimeter-level NDVI multispectral vegetation indices,
+                    pest infestation hotspot maps, and targeted micro-spraying payload route planning.
+                  </p>
+                </div>
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Survey Resolution:</span>
+                    <strong className="text-slate-900">2.5 cm/pixel (RGB + NIR)</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Flight Autonomy:</span>
+                    <strong className="text-purple-700">Waypoints via DGCA DigitalSky</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Integration Status:</span>
+                    <span className="text-amber-600 font-semibold">Protocols Defined (Future Scope)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. IoT Soil Sensors Integration */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-3xl p-6 border border-slate-200 hover:border-emerald-400 transition-all space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                    📡
+                  </div>
+                  <span className="px-3 py-1 bg-emerald-100/80 text-emerald-800 rounded-full text-[11px] font-bold">
+                    LoRaWAN / Zigbee Telemetry
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900">IoT Soil Sensor Integration</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Field-deployed soil probes capturing continuous NPK (Nitrogen, Phosphorus, Potassium), pH levels,
+                    volumetric water content, and electrical conductivity to trigger precision fertigation.
+                  </p>
+                </div>
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Sensors Supported:</span>
+                    <strong className="text-slate-900">NPK 7-in-1, Soil Moisture, pH, Temp</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Gateway Communication:</span>
+                    <strong className="text-emerald-700">MQTT over LoRaWAN 865 MHz</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Integration Status:</span>
+                    <span className="text-amber-600 font-semibold">Schema Ready (Future Scope)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Satellite-Based Crop Analysis */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-3xl p-6 border border-slate-200 hover:border-blue-400 transition-all space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg">
+                    🛰️
+                  </div>
+                  <span className="px-3 py-1 bg-blue-100/80 text-blue-800 rounded-full text-[11px] font-bold">
+                    ISRO / ESA Sentinel-2
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900">Satellite-Based Crop Analysis</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Optical and Synthetic Aperture Radar (SAR) remote sensing from Sentinel-2 & ISRO VEDAS for regional
+                    canopy moisture indexing, drought severity grading, and district-level crop masking.
+                  </p>
+                </div>
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Data Feeds:</span>
+                    <strong className="text-slate-900">Sentinel-2 (10m) + Landsat 9 (30m)</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Indices Calculated:</span>
+                    <strong className="text-blue-700">NDVI, NDWI, EVI, SAVI</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Integration Status:</span>
+                    <span className="text-amber-600 font-semibold">API Pipeline Drafted (Future Scope)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. AI-Based Yield Prediction */}
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-3xl p-6 border border-slate-200 hover:border-amber-400 transition-all space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg">
+                    📊
+                  </div>
+                  <span className="px-3 py-1 bg-amber-100/80 text-amber-800 rounded-full text-[11px] font-bold">
+                    Deep Learning / XGBoost
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-slate-900">AI-Based Yield Prediction</h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Ensemble Machine Learning models fusing multi-year harvest records, weather degree days (GDD),
+                    soil organic carbon, and sowing dates to predict final crop tonnage per acre with 90%+ confidence.
+                  </p>
+                </div>
+                <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Model Architecture:</span>
+                    <strong className="text-slate-900">Spatial-Temporal LSTM + XGBoost</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Input Parameters:</span>
+                    <strong className="text-amber-700">GDD, Soil NPK, Cumulative Rain</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Integration Status:</span>
+                    <span className="text-amber-600 font-semibold">Training Pipeline (Future Scope)</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

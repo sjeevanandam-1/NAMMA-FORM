@@ -43,18 +43,12 @@ export const Home: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
-              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span>Next-Gen Agricultural Commerce & AI Intelligence</span>
-            </div>
-
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight sm:leading-tight mb-6">
-              From Farm to Buyer.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300">
-                Powered by AI.
-              </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200">
+                Namma Farm
+              </span>{' '}
+              to Buyer.
             </h1>
 
             {/* Subtitle */}
@@ -78,12 +72,6 @@ export const Home: React.FC = () => {
                 className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold text-base rounded-2xl border border-slate-700 hover:border-slate-600 transition-all flex items-center justify-center gap-2"
               >
                 Join as Buyer
-              </Link>
-              <Link
-                to="/marketplace"
-                className="w-full sm:w-auto px-8 py-4 bg-transparent hover:bg-white/10 text-slate-200 font-semibold text-base rounded-2xl border border-white/20 transition-all"
-              >
-                Explore Marketplace
               </Link>
             </div>
 

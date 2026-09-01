@@ -120,8 +120,15 @@ export const RegisterBuyer: React.FC = () => {
         requiredCrops: formData.requiredCrops.split(',').map((s) => s.trim()),
       });
 
-      await login(formData.email, formData.password);
-      navigate('/marketplace');
+      // Send buyer to login page as requested by required flow
+      navigate('/login', {
+        state: {
+          registered: true,
+          role: 'BUYER',
+          email: formData.email,
+          message: 'Buyer registration completed successfully! Please sign in to access your Buyer Dashboard.',
+        },
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Buyer registration failed');
     } finally {
@@ -136,11 +143,15 @@ export const RegisterBuyer: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white mx-auto flex items-center justify-center shadow-md mb-3">
             <ShoppingCart className="w-7 h-7" />
           </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Account Type: Commercial Buyer
+          </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Buyer Onboarding
+            Buyer Registration
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Source directly from verified farmers with Escrow payment protection
+            Source directly from verified farmers with 100% Escrow payment protection
           </p>
         </div>
 

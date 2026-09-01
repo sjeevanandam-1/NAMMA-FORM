@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.js';
-import { Sprout, Lock, Mail, ArrowRight, AlertCircle, Phone, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Sprout, Lock, Mail, ArrowRight, AlertCircle, Phone, UserCheck, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [identifier, setIdentifier] = useState('');
+  const registrationMessage = (location.state as any)?.message;
+  const initialEmail = (location.state as any)?.email || '';
+
+  const [identifier, setIdentifier] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +30,7 @@ export const Login: React.FC = () => {
         if (user.role === 'FARMER') {
           navigate('/farmer/dashboard');
         } else if (user.role === 'BUYER') {
-          navigate('/marketplace');
+          navigate('/buyer/dashboard');
         } else if (user.role === 'GOVERNMENT_OFFICIAL') {
           navigate('/government/dashboard');
         } else if (user.role === 'ADMIN') {
@@ -63,6 +67,13 @@ export const Login: React.FC = () => {
             Access your agricultural marketplace and farm intelligence portal
           </p>
         </div>
+
+        {registrationMessage && (
+          <div className="bg-emerald-50 text-emerald-800 p-3.5 rounded-xl border border-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span className="font-semibold">{registrationMessage}</span>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-red-700 p-3.5 rounded-xl border border-red-200 text-xs flex items-center gap-2 animate-in fade-in">

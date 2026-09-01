@@ -125,9 +125,15 @@ export const RegisterFarmer: React.FC = () => {
         mainCrops: formData.mainCrops.split(',').map((s) => s.trim()),
       });
 
-      // Automatically log the farmer in
-      await login(formData.email, formData.password);
-      navigate('/farmer/dashboard');
+      // Send farmer to login page as requested by required flow
+      navigate('/login', {
+        state: {
+          registered: true,
+          role: 'FARMER',
+          email: formData.email,
+          message: 'Farmer registration completed successfully! Please sign in to access your Farmer Dashboard.',
+        },
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please check fields.');
     } finally {
@@ -142,11 +148,15 @@ export const RegisterFarmer: React.FC = () => {
           <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white mx-auto flex items-center justify-center shadow-md mb-3">
             <Sprout className="w-7 h-7" />
           </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Account Type: Farmer
+          </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Farmer Registration
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Join thousands of farmers getting direct buyer prices and AI intelligence
+            Join thousands of farmers getting direct buyer prices, government schemes, and AI intelligence
           </p>
         </div>
 
