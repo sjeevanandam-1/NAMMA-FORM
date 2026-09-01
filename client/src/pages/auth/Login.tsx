@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.js';
+import { useLanguage } from '../../context/LanguageContext.js';
 import { Sprout, Lock, Mail, ArrowRight, AlertCircle, Phone, UserCheck, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,10 +63,10 @@ export const Login: React.FC = () => {
             <Sprout className="w-8 h-8" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Sign In to Namma Farm
+            {t('login_heading')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Access your agricultural marketplace and farm intelligence portal
+            {t('app_tagline')}
           </p>
         </div>
 
@@ -86,7 +88,7 @@ export const Login: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
             <label className="block font-semibold text-slate-700 mb-1.5">
-              Email or Mobile Number
+              {t('email_or_phone')}
             </label>
             <div className="relative">
               <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -103,7 +105,7 @@ export const Login: React.FC = () => {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="font-semibold text-slate-700">Password</label>
+              <label className="font-semibold text-slate-700">{t('password')}</label>
               <Link
                 to="/forgot-password"
                 className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
@@ -137,7 +139,7 @@ export const Login: React.FC = () => {
             disabled={loading}
             className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
-            {loading ? 'Authenticating...' : 'Sign In'}
+            {loading ? 'Authenticating...' : t('sign_in')}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -150,13 +152,13 @@ export const Login: React.FC = () => {
               to="/register/farmer"
               className="py-2.5 px-3 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-xs font-bold transition-all text-center"
             >
-              Register as Farmer
+              {t('join_as_farmer')}
             </Link>
             <Link
               to="/register/buyer"
               className="py-2.5 px-3 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-800 border border-slate-200 hover:border-blue-300 rounded-xl text-xs font-bold transition-all text-center"
             >
-              Register as Buyer
+              {t('join_as_buyer')}
             </Link>
           </div>
         </div>

@@ -15,13 +15,15 @@ interface VoiceAssistantHook {
 }
 
 export function useVoiceAssistant(): VoiceAssistantHook {
-  const { language } = useLanguage();
+  const { language, currentLanguageOption } = useLanguage();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  const speechLang = currentLanguageOption?.speechCode || 'en-IN';
 
   useEffect(() => {
     // Check Speech Recognition support in browser
@@ -33,7 +35,7 @@ export function useVoiceAssistant(): VoiceAssistantHook {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = language === 'ta' ? 'ta-IN' : 'en-IN';
+      recognition.lang = speechLang;
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -66,7 +68,7 @@ export function useVoiceAssistant(): VoiceAssistantHook {
     } else {
       setIsSupported(false);
     }
-  }, [language]);
+  }, [language, speechLang]);
 
   const startListening = () => {
     setVoiceError(null);
@@ -77,7 +79,7 @@ export function useVoiceAssistant(): VoiceAssistantHook {
 
     if (recognitionRef.current) {
       setTranscript('');
-      recognitionRef.current.lang = language === 'ta' ? 'ta-IN' : 'en-IN';
+      recognitionRef.current.lang = speechLang;
       try {
         recognitionRef.current.start();
       } catch (err: any) {
@@ -103,7 +105,7 @@ export function useVoiceAssistant(): VoiceAssistantHook {
 
       const cleanText = text.replace(/[*_#`]/g, ''); // strip markdown
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = language === 'ta' ? 'ta-IN' : 'en-IN';
+      utterance.lang = speechLang;
       utterance.rate = 0.95;
 
       utterance.onstart = () => setIsSpeaking(true);
@@ -136,3 +138,4 @@ export function useVoiceAssistant(): VoiceAssistantHook {
     clearVoiceError,
   };
 }
+export default useVoiceAssistant;

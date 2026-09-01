@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.js';
-import { useLanguage } from '../../context/LanguageContext.js';
+import { useLanguage, SUPPORTED_LANGUAGES, Language } from '../../context/LanguageContext.js';
 import { useNotifications } from '../../context/NotificationContext.js';
 import {
   Sprout,
@@ -12,7 +12,6 @@ import {
   Bell,
   Globe,
   LogOut,
-  User as UserIcon,
   Menu,
   X,
   Landmark,
@@ -25,7 +24,6 @@ import {
   Tractor,
   TrendingUp,
   Truck,
-  FileText,
   ShieldCheck,
   Users,
   Calculator,
@@ -37,15 +35,17 @@ import {
   MessageSquare,
   Home,
   LogIn,
-  UserPlus,
+  Check,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, currentLanguageOption, supportedLanguages } = useLanguage();
   const { notifications, unreadCount } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -53,6 +53,17 @@ export const Navbar: React.FC = () => {
     await logout();
     navigate('/login');
   };
+
+  // Close language menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        setLanguageMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Determine logo redirect based on authentication and user role
   const getLogoDestination = () => {
@@ -62,6 +73,11 @@ export const Navbar: React.FC = () => {
     if (role === 'ADMIN') return '/admin/dashboard';
     if (role === 'GOVERNMENT_OFFICIAL') return '/government/dashboard';
     return '/';
+  };
+
+  const handleSelectLanguage = (langCode: Language) => {
+    setLanguage(langCode);
+    setLanguageMenuOpen(false);
   };
 
   return (
@@ -77,14 +93,15 @@ export const Navbar: React.FC = () => {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-extrabold text-xl tracking-tight text-slate-900">
-                    Namma<span className="text-emerald-600"> Farm</span>
+                    {language === 'en' ? 'Namma' : t('app_title').split(' ')[0]}
+                    <span className="text-emerald-600"> {language === 'en' ? 'Farm' : t('app_title').split(' ').slice(1).join(' ')}</span>
                   </span>
                   <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                     PRO
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium hidden sm:block">
-                  Digital Agriculture Platform
+                  {t('app_tagline')}
                 </p>
               </div>
             </Link>
@@ -98,21 +115,21 @@ export const Navbar: React.FC = () => {
                     to="/"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
                   >
-                    Home
+                    {t('home')}
                   </Link>
                   <Link
                     to="/register/farmer"
                     className="px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <Sprout className="w-4 h-4 text-emerald-600" />
-                    Join as Farmer
+                    {t('join_as_farmer')}
                   </Link>
                   <Link
                     to="/register/buyer"
                     className="px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <Building className="w-4 h-4 text-blue-600" />
-                    Join as Buyer
+                    {t('join_as_buyer')}
                   </Link>
                 </>
               )}
@@ -124,7 +141,7 @@ export const Navbar: React.FC = () => {
                     to="/farmer/dashboard"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
                   >
-                    Dashboard
+                    {t('dashboard')}
                   </Link>
 
                   <Link
@@ -132,7 +149,7 @@ export const Navbar: React.FC = () => {
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                    Marketplace
+                    {t('marketplace')}
                   </Link>
 
                   {/* Schemes & MSP Dropdown */}
@@ -143,7 +160,7 @@ export const Navbar: React.FC = () => {
                   >
                     <button className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 rounded-lg transition flex items-center gap-1">
                       <Landmark className="w-3.5 h-3.5 text-emerald-600" />
-                      Schemes & MSP
+                      {t('schemes_msp')}
                       <ChevronDown className="w-3 h-3 text-slate-400" />
                     </button>
                     {activeDropdown === 'schemes' && (
@@ -155,8 +172,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Landmark className="w-4 h-4 text-emerald-600" />
                           <div>
-                            <div>Government Schemes Hub</div>
-                            <span className="text-[10px] text-slate-400 font-normal">PM-KISAN, Subsidies & DBT</span>
+                            <div>{t('gov_schemes_hub')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('gov_schemes_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -166,8 +183,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Scale className="w-4 h-4 text-amber-600" />
                           <div>
-                            <div>Assured Price / MSP</div>
-                            <span className="text-[10px] text-slate-400 font-normal">FCI Centers & Digital Receipts</span>
+                            <div>{t('assured_price_msp')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('assured_price_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -177,8 +194,8 @@ export const Navbar: React.FC = () => {
                         >
                           <ShieldCheck className="w-4 h-4 text-blue-600" />
                           <div>
-                            <div>Digital Farmer Passport</div>
-                            <span className="text-[10px] text-slate-400 font-normal">KYC & Soil Health Profile</span>
+                            <div>{t('farmer_passport')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('farmer_passport_sub')}</span>
                           </div>
                         </Link>
                       </div>
@@ -193,7 +210,7 @@ export const Navbar: React.FC = () => {
                   >
                     <button className="px-3 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg transition flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                      AI Farming
+                      {t('ai_farming')}
                       <ChevronDown className="w-3 h-3 text-emerald-600" />
                     </button>
                     {activeDropdown === 'ai' && (
@@ -205,8 +222,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Stethoscope className="w-4 h-4 text-teal-600" />
                           <div>
-                            <div>Crop Health Scanner</div>
-                            <span className="text-[10px] text-slate-400 font-normal">AI Disease Diagnosis & Bio-Remedies</span>
+                            <div>{t('crop_doctor')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('crop_doctor_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -216,8 +233,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Bot className="w-4 h-4 text-indigo-600" />
                           <div>
-                            <div>AI Agriculture Chatbot</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Multilingual Voice & Image Advisory</span>
+                            <div>{t('ai_assistant')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('ai_assistant_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -227,8 +244,8 @@ export const Navbar: React.FC = () => {
                         >
                           <TrendingUp className="w-4 h-4 text-blue-600" />
                           <div>
-                            <div>7-Day Price Analysis</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Live Mandi Prices & Forecasts</span>
+                            <div>{t('price_analysis')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('price_analysis_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -238,8 +255,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Scale className="w-4 h-4 text-purple-600" />
                           <div>
-                            <div>Market Comparison</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Multi-Mandi Net Profit Calculator</span>
+                            <div>{t('market_comparison')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('market_comparison_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -249,8 +266,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Droplets className="w-4 h-4 text-cyan-600" />
                           <div>
-                            <div>Smart Irrigation</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Precision Water Requirement</span>
+                            <div>{t('smart_irrigation')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('smart_irrigation_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -260,8 +277,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Calendar className="w-4 h-4 text-emerald-600" />
                           <div>
-                            <div>AI Crop Calendar</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Stage-wise Growth Tasks</span>
+                            <div>{t('crop_calendar')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('crop_calendar_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -271,8 +288,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Calculator className="w-4 h-4 text-green-600" />
                           <div>
-                            <div>AI Profit Calculator</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Input Budget & ROI Margin</span>
+                            <div>{t('profit_calculator')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('profit_calculator_sub')}</span>
                           </div>
                         </Link>
                       </div>
@@ -286,7 +303,7 @@ export const Navbar: React.FC = () => {
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <button className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 rounded-lg transition flex items-center gap-1">
-                      Services
+                      {t('farm_services')}
                       <ChevronDown className="w-3 h-3 text-slate-400" />
                     </button>
                     {activeDropdown === 'services' && (
@@ -298,8 +315,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Warehouse className="w-4 h-4 text-cyan-700" />
                           <div>
-                            <div>Storage Finder</div>
-                            <span className="text-[10px] text-slate-400 font-normal">CWC & Cold Storages</span>
+                            <div>{t('storage_finder')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('storage_finder_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -309,8 +326,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Tractor className="w-4 h-4 text-orange-600" />
                           <div>
-                            <div>Equipment Rental</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Tractors, Drones & Harvesters</span>
+                            <div>{t('equipment_rental')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('equipment_rental_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -320,8 +337,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Truck className="w-4 h-4 text-blue-600" />
                           <div>
-                            <div>Smart Transport</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Mini Truck Farmgate Logistics</span>
+                            <div>{t('smart_transport')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('smart_transport_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -331,8 +348,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Recycle className="w-4 h-4 text-emerald-600" />
                           <div>
-                            <div>Agri Waste Market</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Paddy Straw & Biomass</span>
+                            <div>{t('agri_waste_market')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('agri_waste_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -342,8 +359,8 @@ export const Navbar: React.FC = () => {
                         >
                           <CloudSun className="w-4 h-4 text-sky-600" />
                           <div>
-                            <div>Hyperlocal Weather</div>
-                            <span className="text-[10px] text-slate-400 font-normal">7-Day Forecast & Warnings</span>
+                            <div>{t('weather')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('weather_sub')}</span>
                           </div>
                         </Link>
                       </div>
@@ -357,7 +374,7 @@ export const Navbar: React.FC = () => {
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <button className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-emerald-600 rounded-lg transition flex items-center gap-1">
-                      Finance & Network
+                      {t('finance_network')}
                       <ChevronDown className="w-3 h-3 text-slate-400" />
                     </button>
                     {activeDropdown === 'finance' && (
@@ -369,8 +386,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Landmark className="w-4 h-4 text-emerald-700" />
                           <div>
-                            <div>KCC Loans & Finance</div>
-                            <span className="text-[10px] text-slate-400 font-normal">4% Subvented Agri Credit</span>
+                            <div>{t('kcc_loans')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('kcc_loans_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -380,8 +397,8 @@ export const Navbar: React.FC = () => {
                         >
                           <ShieldCheck className="w-4 h-4 text-blue-700" />
                           <div>
-                            <div>PMFBY Crop Insurance</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Subsidized Claims & Protection</span>
+                            <div>{t('pmfby_insurance')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('pmfby_insurance_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -391,8 +408,8 @@ export const Navbar: React.FC = () => {
                         >
                           <Users className="w-4 h-4 text-purple-600" />
                           <div>
-                            <div>Community Connect</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Farmer Q&A & Advice Forum</span>
+                            <div>{t('community_connect')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('community_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -402,8 +419,8 @@ export const Navbar: React.FC = () => {
                         >
                           <GraduationCap className="w-4 h-4 text-teal-600" />
                           <div>
-                            <div>Direct Expert Access</div>
-                            <span className="text-[10px] text-slate-400 font-normal">Verified TNAU / ICAR Scientists</span>
+                            <div>{t('direct_experts')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('direct_experts_sub')}</span>
                           </div>
                         </Link>
                         <Link
@@ -413,8 +430,8 @@ export const Navbar: React.FC = () => {
                         >
                           <PhoneCall className="w-4 h-4 text-rose-600" />
                           <div>
-                            <div>Toll-Free Support</div>
-                            <span className="text-[10px] text-slate-400 font-normal">1800-180-1551 & Tickets</span>
+                            <div>{t('toll_free_support')}</div>
+                            <span className="text-[10px] text-slate-400 font-normal">{t('toll_free_sub')}</span>
                           </div>
                         </Link>
                       </div>
@@ -430,49 +447,49 @@ export const Navbar: React.FC = () => {
                     to="/buyer/dashboard"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                   >
-                    Buyer Dashboard
+                    {t('buyer_dashboard')}
                   </Link>
                   <Link
                     to="/marketplace"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <ShoppingBag className="w-4 h-4 text-blue-600" />
-                    Browse Crops
+                    {t('browse_crops')}
                   </Link>
                   <Link
                     to="/buyer/orders"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <Package className="w-4 h-4 text-blue-600" />
-                    My Orders
+                    {t('my_orders')}
                   </Link>
                   <Link
                     to="/farmer/price-analysis"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <TrendingUp className="w-4 h-4 text-indigo-600" />
-                    Price Analysis
+                    {t('price_analysis')}
                   </Link>
                   <Link
                     to="/farmer/transport"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <Truck className="w-4 h-4 text-cyan-600" />
-                    Logistics
+                    {t('smart_transport')}
                   </Link>
                   <Link
                     to="/farmer/waste-market"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <Recycle className="w-4 h-4 text-teal-600" />
-                    Biomass Market
+                    {t('agri_waste_market')}
                   </Link>
                   <Link
                     to="/chat"
                     className="px-3 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1.5"
                   >
                     <MessageSquare className="w-4 h-4 text-purple-600" />
-                    Negotiate
+                    {t('direct_chat')}
                   </Link>
                 </>
               )}
@@ -483,7 +500,7 @@ export const Navbar: React.FC = () => {
                   to="/admin/dashboard"
                   className="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-100 rounded-lg hover:bg-amber-200 transition"
                 >
-                  Admin Portal
+                  {t('admin_portal')}
                 </Link>
               )}
             </div>
@@ -491,21 +508,54 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Icons (Language, Notifications, Profile) */}
           <div className="flex items-center gap-3">
-            {/* Language Switcher */}
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'ta' : 'en')}
-              className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition"
-            >
-              <Globe className="w-3.5 h-3.5 text-slate-600" />
-              <span>{language === 'en' ? 'தமிழ்' : 'English'}</span>
-            </button>
+            {/* Interactive 6-Language Dropdown Selector */}
+            <div className="relative" ref={languageMenuRef}>
+              <button
+                onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition border border-slate-200 shadow-2xs"
+                title={t('change_language')}
+                aria-expanded={languageMenuOpen}
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{currentLanguageOption.nativeName}</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${languageMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {languageMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 space-y-1 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                    {t('change_language')}
+                  </div>
+                  {supportedLanguages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleSelectLanguage(lang.code)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition text-left ${
+                        language === lang.code
+                          ? 'bg-emerald-50 text-emerald-800 font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{lang.flag}</span>
+                        <div>
+                          <span className="block">{lang.nativeName}</span>
+                          <span className="text-[10px] text-slate-400 font-normal">{lang.name}</span>
+                        </div>
+                      </div>
+                      {language === lang.code && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Notification Bell (Only when logged in) */}
             {user && (
               <Link
                 to="/farmer/notifications"
                 className="p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition relative"
-                title="Notifications"
+                title={t('notifications')}
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -530,7 +580,7 @@ export const Navbar: React.FC = () => {
                 <button
                   onClick={handleLogout}
                   className="p-2 text-slate-500 hover:text-rose-600 rounded-xl hover:bg-slate-100 transition"
-                  title="Logout"
+                  title={t('logout')}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -541,7 +591,7 @@ export const Navbar: React.FC = () => {
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                Sign In
+                {t('sign_in')}
               </Link>
             )}
 
@@ -562,18 +612,42 @@ export const Navbar: React.FC = () => {
       {/* ---------------------------------------------------- */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-slate-200 bg-white p-4 space-y-3 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-top-2">
+          {/* Mobile Language Selector Grid */}
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-emerald-600" />
+              {t('change_language')}
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {supportedLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code)}
+                  className={`px-2 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 ${
+                    language === lang.code
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>{lang.flag}</span>
+                  <span>{lang.nativeName}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 1. LOGGED-OUT USERS: ONLY SAFE PUBLIC PAGES */}
           {!user && (
             <div className="space-y-2">
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">
-                Public Navigation
+                {t('home')}
               </div>
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-3 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800 transition"
               >
-                <Home className="w-4 h-4 text-emerald-600" /> Home
+                <Home className="w-4 h-4 text-emerald-600" /> {t('home')}
               </Link>
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 <Link
@@ -581,21 +655,21 @@ export const Navbar: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-extrabold transition"
                 >
-                  <Sprout className="w-4 h-4 text-emerald-600" /> Join as Farmer
+                  <Sprout className="w-4 h-4 text-emerald-600" /> {t('join_as_farmer')}
                 </Link>
                 <Link
                   to="/register/buyer"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-extrabold transition"
                 >
-                  <Building className="w-4 h-4 text-blue-600" /> Join as Buyer
+                  <Building className="w-4 h-4 text-blue-600" /> {t('join_as_buyer')}
                 </Link>
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow transition"
                 >
-                  <LogIn className="w-4 h-4" /> Sign In to Account
+                  <LogIn className="w-4 h-4" /> {t('sign_in_account')}
                 </Link>
               </div>
             </div>
@@ -606,138 +680,138 @@ export const Navbar: React.FC = () => {
             <div className="space-y-2">
               <div className="p-3 bg-emerald-50 rounded-2xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-emerald-800 uppercase block">Signed in as Farmer</span>
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase block">{t('account_type_farmer')}</span>
                   <strong className="text-sm font-bold text-slate-900">{user.name}</strong>
                 </div>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold border border-rose-200 transition flex items-center gap-1"
                 >
-                  <LogOut className="w-3.5 h-3.5" /> Logout
+                  <LogOut className="w-3.5 h-3.5" /> {t('logout')}
                 </button>
               </div>
 
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">
-                Farmer Workspace
+                {t('farmer_dashboard')}
               </div>
               <Link
                 to="/farmer/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Sprout className="w-4 h-4 text-emerald-600" /> Farmer Dashboard
+                <Sprout className="w-4 h-4 text-emerald-600" /> {t('farmer_dashboard')}
               </Link>
               <Link
                 to="/marketplace"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <ShoppingBag className="w-4 h-4 text-emerald-600" /> Marketplace
+                <ShoppingBag className="w-4 h-4 text-emerald-600" /> {t('marketplace')}
               </Link>
               <Link
                 to="/farmer/schemes"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Landmark className="w-4 h-4 text-emerald-600" /> Government Schemes
+                <Landmark className="w-4 h-4 text-emerald-600" /> {t('gov_schemes_hub')}
               </Link>
               <Link
                 to="/farmer/msp"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Scale className="w-4 h-4 text-amber-600" /> Assured MSP Prices
+                <Scale className="w-4 h-4 text-amber-600" /> {t('assured_price_msp')}
               </Link>
               <Link
                 to="/farmer/passport"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <ShieldCheck className="w-4 h-4 text-blue-600" /> Digital Farmer Passport
+                <ShieldCheck className="w-4 h-4 text-blue-600" /> {t('farmer_passport')}
               </Link>
               <Link
                 to="/farmer/crop-doctor"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Stethoscope className="w-4 h-4 text-teal-600" /> AI Crop Doctor
+                <Stethoscope className="w-4 h-4 text-teal-600" /> {t('crop_doctor')}
               </Link>
               <Link
                 to="/farmer/assistant"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Bot className="w-4 h-4 text-indigo-600" /> AI Agriculture Chatbot
+                <Bot className="w-4 h-4 text-indigo-600" /> {t('ai_assistant')}
               </Link>
               <Link
                 to="/farmer/price-analysis"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <TrendingUp className="w-4 h-4 text-blue-600" /> 7-Day Price Analysis
+                <TrendingUp className="w-4 h-4 text-blue-600" /> {t('price_analysis')}
               </Link>
               <Link
                 to="/farmer/storage"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Warehouse className="w-4 h-4 text-cyan-600" /> Storage Godowns
+                <Warehouse className="w-4 h-4 text-cyan-600" /> {t('storage_finder')}
               </Link>
               <Link
                 to="/farmer/equipment"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Tractor className="w-4 h-4 text-orange-600" /> Equipment Rental
+                <Tractor className="w-4 h-4 text-orange-600" /> {t('equipment_rental')}
               </Link>
               <Link
                 to="/farmer/transport"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Truck className="w-4 h-4 text-blue-600" /> Smart Transport
+                <Truck className="w-4 h-4 text-blue-600" /> {t('smart_transport')}
               </Link>
               <Link
                 to="/farmer/finance"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Landmark className="w-4 h-4 text-emerald-700" /> KCC Loans & Finance
+                <Landmark className="w-4 h-4 text-emerald-700" /> {t('kcc_loans')}
               </Link>
               <Link
                 to="/farmer/insurance"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <ShieldCheck className="w-4 h-4 text-blue-700" /> PMFBY Crop Insurance
+                <ShieldCheck className="w-4 h-4 text-blue-700" /> {t('pmfby_insurance')}
               </Link>
               <Link
                 to="/farmer/community"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Users className="w-4 h-4 text-purple-600" /> Community Connect
+                <Users className="w-4 h-4 text-purple-600" /> {t('community_connect')}
               </Link>
               <Link
                 to="/farmer/waste-market"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Recycle className="w-4 h-4 text-emerald-600" /> Agri Waste Market
+                <Recycle className="w-4 h-4 text-emerald-600" /> {t('agri_waste_market')}
               </Link>
               <Link
                 to="/farmer/experts"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <GraduationCap className="w-4 h-4 text-teal-600" /> Direct Expert Access
+                <GraduationCap className="w-4 h-4 text-teal-600" /> {t('direct_experts')}
               </Link>
               <Link
                 to="/farmer/support"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <PhoneCall className="w-4 h-4 text-rose-600" /> Toll-Free Assistance
+                <PhoneCall className="w-4 h-4 text-rose-600" /> {t('toll_free_support')}
               </Link>
             </div>
           )}
@@ -747,75 +821,75 @@ export const Navbar: React.FC = () => {
             <div className="space-y-2">
               <div className="p-3 bg-blue-50 rounded-2xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-blue-800 uppercase block">Signed in as Buyer</span>
+                  <span className="text-[10px] font-bold text-blue-800 uppercase block">{t('account_type_buyer')}</span>
                   <strong className="text-sm font-bold text-slate-900">{user.name}</strong>
                 </div>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold border border-rose-200 transition flex items-center gap-1"
                 >
-                  <LogOut className="w-3.5 h-3.5" /> Logout
+                  <LogOut className="w-3.5 h-3.5" /> {t('logout')}
                 </button>
               </div>
 
               <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-2">
-                Buyer Procurement Hub
+                {t('buyer_hub')}
               </div>
               <Link
                 to="/buyer/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Building className="w-4 h-4 text-blue-600" /> Buyer Dashboard
+                <Building className="w-4 h-4 text-blue-600" /> {t('buyer_dashboard')}
               </Link>
               <Link
                 to="/marketplace"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <ShoppingBag className="w-4 h-4 text-blue-600" /> Fresh Crop Marketplace
+                <ShoppingBag className="w-4 h-4 text-blue-600" /> {t('browse_crops')}
               </Link>
               <Link
                 to="/buyer/orders"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Package className="w-4 h-4 text-emerald-600" /> My Purchase Orders
+                <Package className="w-4 h-4 text-emerald-600" /> {t('my_orders')}
               </Link>
               <Link
                 to="/farmer/price-analysis"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <TrendingUp className="w-4 h-4 text-indigo-600" /> Mandi Price Forecasts
+                <TrendingUp className="w-4 h-4 text-indigo-600" /> {t('mandi_forecasts')}
               </Link>
               <Link
                 to="/farmer/transport"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Truck className="w-4 h-4 text-cyan-600" /> Farmgate Logistics
+                <Truck className="w-4 h-4 text-cyan-600" /> {t('farmgate_logistics')}
               </Link>
               <Link
                 to="/farmer/waste-market"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <Recycle className="w-4 h-4 text-teal-600" /> Biomass & Crop Waste
+                <Recycle className="w-4 h-4 text-teal-600" /> {t('biomass_market')}
               </Link>
               <Link
                 to="/chat"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <MessageSquare className="w-4 h-4 text-purple-600" /> Direct Farmer Chat
+                <MessageSquare className="w-4 h-4 text-purple-600" /> {t('direct_chat')}
               </Link>
               <Link
                 to="/farmer/support"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
               >
-                <PhoneCall className="w-4 h-4 text-rose-600" /> Helpdesk & Toll-Free
+                <PhoneCall className="w-4 h-4 text-rose-600" /> {t('toll_free_support')}
               </Link>
             </div>
           )}
@@ -825,14 +899,14 @@ export const Navbar: React.FC = () => {
             <div className="space-y-2">
               <div className="p-3 bg-amber-50 rounded-2xl flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block">Administrator</span>
+                  <span className="text-[10px] font-bold text-amber-800 uppercase block">{t('admin_portal')}</span>
                   <strong className="text-sm font-bold text-slate-900">{user.name}</strong>
                 </div>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold border border-rose-200 transition flex items-center gap-1"
                 >
-                  <LogOut className="w-3.5 h-3.5" /> Logout
+                  <LogOut className="w-3.5 h-3.5" /> {t('logout')}
                 </button>
               </div>
 
@@ -841,14 +915,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl bg-amber-100 text-xs font-bold text-amber-950"
               >
-                Admin Control Center
-              </Link>
-              <Link
-                to="/marketplace"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-xs font-bold text-slate-800"
-              >
-                Marketplace
+                {t('admin_portal')}
               </Link>
             </div>
           )}

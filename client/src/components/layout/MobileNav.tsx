@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 import {
   Home,
   ShoppingBag,
-  Sparkles,
   Stethoscope,
   Package,
   Bot,
@@ -13,9 +12,11 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 export const MobileNav: React.FC = () => {
   const { user, role } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 shadow-2xl">
@@ -32,7 +33,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Home className="w-5 h-5 mb-0.5" />
-              <span>Home</span>
+              <span>{t('home')}</span>
             </NavLink>
 
             <NavLink
@@ -44,7 +45,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Sprout className="w-5 h-5 mb-0.5 text-emerald-600" />
-              <span>Join Farmer</span>
+              <span>{t('join_as_farmer')}</span>
             </NavLink>
 
             <NavLink
@@ -56,7 +57,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Building className="w-5 h-5 mb-0.5 text-blue-600" />
-              <span>Join Buyer</span>
+              <span>{t('join_as_buyer')}</span>
             </NavLink>
 
             <NavLink
@@ -68,7 +69,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <LogIn className="w-5 h-5 mb-0.5" />
-              <span>Sign In</span>
+              <span>{t('sign_in')}</span>
             </NavLink>
           </>
         )}
@@ -85,7 +86,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Sprout className="w-5 h-5 mb-0.5" />
-              <span>Dashboard</span>
+              <span>{t('dashboard')}</span>
             </NavLink>
 
             <NavLink
@@ -97,7 +98,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <ShoppingBag className="w-5 h-5 mb-0.5" />
-              <span>Market</span>
+              <span>{t('marketplace')}</span>
             </NavLink>
 
             <NavLink
@@ -109,7 +110,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Stethoscope className="w-5 h-5 mb-0.5" />
-              <span>Doctor</span>
+              <span>{t('crop_doctor')}</span>
             </NavLink>
 
             <NavLink
@@ -121,7 +122,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Package className="w-5 h-5 mb-0.5" />
-              <span>Orders</span>
+              <span>{t('my_orders')}</span>
             </NavLink>
 
             <NavLink
@@ -133,7 +134,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Bot className="w-5 h-5 mb-0.5" />
-              <span>AgriAI</span>
+              <span>{t('ai_assistant')}</span>
             </NavLink>
           </>
         )}
@@ -150,7 +151,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Building className="w-5 h-5 mb-0.5" />
-              <span>Dashboard</span>
+              <span>{t('buyer_dashboard')}</span>
             </NavLink>
 
             <NavLink
@@ -162,7 +163,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <ShoppingBag className="w-5 h-5 mb-0.5" />
-              <span>Market</span>
+              <span>{t('browse_crops')}</span>
             </NavLink>
 
             <NavLink
@@ -174,7 +175,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <Package className="w-5 h-5 mb-0.5" />
-              <span>Orders</span>
+              <span>{t('my_orders')}</span>
             </NavLink>
 
             <NavLink
@@ -186,7 +187,7 @@ export const MobileNav: React.FC = () => {
               }
             >
               <TrendingUp className="w-5 h-5 mb-0.5" />
-              <span>Prices</span>
+              <span>{t('price_analysis')}</span>
             </NavLink>
           </>
         )}

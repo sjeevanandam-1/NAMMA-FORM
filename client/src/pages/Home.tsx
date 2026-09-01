@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t, language, currentLanguageOption } = useLanguage();
 
   // Interactive ROI calculator state for landing page
   const [calcCrop, setCalcCrop] = useState('Tomato');
@@ -53,8 +53,7 @@ export const Home: React.FC = () => {
 
             {/* Subtitle */}
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10">
-              Connect directly. Discover fair transparent prices. Make smarter farming decisions
-              with real-time price forecasting, crop disease scans, and farmgate buyer matchmaking.
+              {t('hero_subtext')}
             </p>
 
             {/* CTA Buttons */}
@@ -64,14 +63,14 @@ export const Home: React.FC = () => {
                 className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-base rounded-2xl shadow-lg hover:shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 group"
               >
                 <Sprout className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                Join as Farmer
+                {t('join_as_farmer')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/register/buyer"
                 className="w-full sm:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold text-base rounded-2xl border border-slate-700 hover:border-slate-600 transition-all flex items-center justify-center gap-2"
               >
-                Join as Buyer
+                {t('join_as_buyer')}
               </Link>
             </div>
 
@@ -79,19 +78,19 @@ export const Home: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 pt-12 border-t border-slate-800/80 text-left">
               <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
                 <p className="text-2xl sm:text-3xl font-extrabold text-emerald-400">22% - 28%</p>
-                <p className="text-xs text-slate-400 mt-1">Higher Net Farmer Returns</p>
+                <p className="text-xs text-slate-400 mt-1">{t('higher_returns')}</p>
               </div>
               <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
                 <p className="text-2xl sm:text-3xl font-extrabold text-yellow-400">0%</p>
-                <p className="text-xs text-slate-400 mt-1">Middleman Brokerage Cuts</p>
+                <p className="text-xs text-slate-400 mt-1">{t('zero_brokerage')}</p>
               </div>
               <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
                 <p className="text-2xl sm:text-3xl font-extrabold text-teal-400">91%+</p>
-                <p className="text-xs text-slate-400 mt-1">AI Crop Disease Vision Accuracy</p>
+                <p className="text-xs text-slate-400 mt-1">{t('ai_vision_accuracy')}</p>
               </div>
               <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
-                <p className="text-2xl sm:text-3xl font-extrabold text-indigo-400">English + தமிழ்</p>
-                <p className="text-xs text-slate-400 mt-1">Bilingual Voice Assistant</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-indigo-400">{currentLanguageOption?.nativeName || 'Multilingual'}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('bilingual_voice')}</p>
               </div>
             </div>
           </div>
